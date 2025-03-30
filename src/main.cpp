@@ -6,7 +6,7 @@ int main() {
   mpu::CPU cpu;
   try {
     cpu.run();
-  } catch (std::exception &error) {
+  } catch (std::runtime_error &error) {
     std::println("{}", error.what());
   }
 }
