@@ -4,10 +4,10 @@ A Game Boy Emulator using C/C++, created for education purposes, with cycle accu
 
 # requirements
 
-### gcc-14
+### build depenedencies
 
 ```bash
-sudo apt install gcc-14
+sudo apt install gcc-14 libsdl2-dev libsdl2-doc
 ```
 
 ### meson build system
@@ -19,6 +19,6 @@ sudo apt install meson
 ## Build Steps
 
 ```bash
-CXX=g++-14 meson setup -Db_sanitize=address builddir && cd buildir
+CXX=g++-14 meson setup -Db_sanitize=address builddir && cd builddir
 meson compile
 ```
