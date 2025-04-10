@@ -49,6 +49,11 @@ struct CPU {
   constexpr auto set_hl(u8 H, u8 L) -> void { HL(H, L); }
   constexpr auto set_hl(u16 __HL) -> void { HL(__HL); }
 
+  constexpr auto set_zero() -> void { set_flags(F | 0b1000'0000); }
+  constexpr auto set_carry() -> void { set_flags(F | 0b0001'0000); }
+  constexpr auto set_parity() -> void { set_flags(F | 0b0100'0000); }
+  constexpr auto set_auxilary_carry() -> void { set_flags(F | 0b0010'0000); }
+
   constexpr auto run() {
     while (true) {
       __cycle();
