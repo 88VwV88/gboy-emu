@@ -18,6 +18,9 @@ auto __throw(std::string &&__message) -> void {
 inline auto TODO(std::string &&__code) -> void {
   throw std::runtime_error(std::format("UNIMPLEMENTED: {}", __code));
 }
+template <typename AsType> inline auto as(auto &&__value) -> u8 {
+  return static_cast<AsType>(__value);
+}
 }; // namespace mpu
 
 #endif

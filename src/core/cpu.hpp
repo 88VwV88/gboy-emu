@@ -1,5 +1,5 @@
-#ifndef __CORE_CPU_HPP
-#define __CORE_CPU_HPP
+#ifndef _CORE_CPU_HPP
+#define _CORE_CPU_HPP
 
 #include <array>
 #include <chrono>
@@ -10,44 +10,33 @@
 namespace mpu {
 using clk = std::chrono::steady_clock;
 
-struct reg_pair {
-  u8 h;
-  u8 l;
-  auto operator=(u16 const __value) -> reg_pair & {
-    h = u8(__value && 0xFF00) >> 8;
-    l = u8(__value >> 8);
-    return *this;
-  }
-  auto operator()() -> u16 { return u16(h << 8) | l; }
-  auto operator()(u16 __value) -> u16 { return ((*this) = __value)(); }
-  auto operator()(u8 __h, u8 __l) -> u16 {
-    h = __h;
-    l = __l;
-    return (*this)();
-  }
-};
-
 struct CPU {
   // MPU timers addresses
   const u16 TIMA = 0xFF05;
   const u16 TMA = 0xFF06;
   const u16 TMC = 0xFF07;
 
-  constexpr auto get_af() -> reg_pair { return {A, F}; }
-  constexpr auto set_acc(u8 __acc) { A = __acc; }
-  constexpr auto set_flags(u8 __flags) { F = __flags; }
+  constexpr auto get_af() -> u16 { return as<u16>((A << 8) | F); }
+  constexpr auto set_acc(u8 _acc) { A = _acc; }
+  constexpr auto set_flags(u8 _flags) { F = _flags; }
 
-  constexpr auto get_bc() -> u16 { return BC(); }
-  constexpr auto set_bc(u8 B, u8 C) -> void { BC(B, C); }
-  constexpr auto set_bc(u16 __BC) -> void { BC(__BC); }
+  constexpr auto get_bc() -> u16 { return as<u16>(B << 8 | C); }
+  constexpr auto set_bc(u8 _B, u8 _C) -> void { B = _B, C = _C; }
+  constexpr auto set_bc(u16 _BC) -> void {
+    set_bc(as<u8>(_BC & 0x00FF), as<u8>((_BC & 0xFF00) >> 8));
+  }
 
-  constexpr auto get_de() -> u16 { return DE(); }
-  constexpr auto set_de(u8 D, u8 E) -> void { DE(D, E); }
-  constexpr auto set_de(u16 __DE) -> void { DE(__DE); }
+  constexpr auto get_de() -> u16 { return as<u16>((D << 8) | E); }
+  constexpr auto set_de(u8 _D, u8 _E) -> void { D = _D, E = _E; }
+  constexpr auto set_de(u16 _DE) -> void {
+    set_de(as<u8>(_DE & 0x00FF), (_DE & 0xFF00) >> 8);
+  }
 
-  constexpr auto get_hl() -> u16 { return HL(); }
-  constexpr auto set_hl(u8 H, u8 L) -> void { HL(H, L); }
-  constexpr auto set_hl(u16 __HL) -> void { HL(__HL); }
+  constexpr auto get_hl() -> u16 { return as<u16>((H << 8) | L); }
+  constexpr auto set_hl(u8 _H, u8 _L) -> void { H = _H, L = _L; }
+  constexpr auto set_hl(u16 _HL) -> void {
+    set_de(as<u8>(_HL & 0x00FF), (_HL & 0xFF00) >> 8);
+  }
 
   constexpr auto set_zero() -> void { set_flags(F | 0b1000'0000); }
   constexpr auto set_carry() -> void { set_flags(F | 0b0001'0000); }
@@ -68,7 +57,7 @@ private:
    * Z B AC C 0 0 0 0
    */
   u8 A, F;                         // program status word (ACCUMULATOR, FLAGS)
-  reg_pair BC, DE, HL;             // register pairs
+  u8 B, C, D, E, H, L;             // register pairs
   u16 _m__pc;                      // program counter
   memory_bus _m__bus;              // 16b memory bus (64KiB)
   bool _m__ready = true;           // mpu ready state
@@ -81,7 +70,7 @@ private:
         __execute_instruction(opcode);
       }
     }
-    TODO("render onto screen");
+    TODO("render onto screen and update cycles");
   }
   constexpr auto __fetch_next() -> u8 { return _m__bus.at(_m__pc++); }
 };
