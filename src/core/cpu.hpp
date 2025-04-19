@@ -16,7 +16,7 @@ struct CPU {
   const u16 TMA = 0xFF06;
   const u16 TMC = 0xFF07;
 
-  constexpr auto get_af() -> u16 { return as<u16>((A << 8) | F); }
+  constexpr auto get_psw() -> u16 { return as<u16>((A << 8) | F); }
   constexpr auto set_acc(u8 _acc) { A = _acc; }
   constexpr auto set_flags(u8 _flags) { F = _flags; }
 
