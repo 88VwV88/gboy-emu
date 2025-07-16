@@ -1,11 +1,11 @@
 #ifndef _CORE_CPU_HPP
 #define _CORE_CPU_HPP
 
+#include "common.hpp"
+#include "memory.hpp"
 #include <array>
 #include <chrono>
 #include <iostream>
-#include "common.hpp"
-#include "memory.hpp"
 
 namespace mpu {
 using clk = std::chrono::steady_clock;
@@ -16,63 +16,94 @@ struct CPU {
   const u16 TMA = 0xFF06;
   const u16 TMC = 0xFF07;
 
-  constexpr auto get_psw() -> u16 { return as<u16>((A << 8) | F); }
-  constexpr auto set_acc(u8 _acc) { A = _acc; }
-  constexpr auto set_flags(u8 _flags) { F = _flags; }
-
-  constexpr auto get_bc() -> u16 { return as<u16>(B << 8 | C); }
-  constexpr auto set_bc(u8 _B, u8 _C) -> void { B = _B, C = _C; }
-  constexpr auto set_bc(u16 _BC) -> void {
-    set_bc(as<u8>(_BC & 0x00FF), as<u8>((_BC & 0xFF00) >> 8));
-  }
-
-  constexpr auto get_de() -> u16 { return as<u16>((D << 8) | E); }
-  constexpr auto set_de(u8 _D, u8 _E) -> void { D = _D, E = _E; }
-  constexpr auto set_de(u16 _DE) -> void {
-    set_de(as<u8>(_DE & 0x00FF), (_DE & 0xFF00) >> 8);
-  }
-
-  constexpr auto get_hl() -> u16 { return as<u16>((H << 8) | L); }
-  constexpr auto set_hl(u8 _H, u8 _L) -> void { H = _H, L = _L; }
-  constexpr auto set_hl(u16 _HL) -> void {
-    set_de(as<u8>(_HL & 0x00FF), (_HL & 0xFF00) >> 8);
-  }
-
-  constexpr auto set_zero() -> void { set_flags(F | 0b1000'0000); }
-  constexpr auto set_carry() -> void { set_flags(F | 0b0001'0000); }
-  constexpr auto set_parity() -> void { set_flags(F | 0b0100'0000); }
-  constexpr auto set_auxilary_carry() -> void { set_flags(F | 0b0010'0000); }
-
-  constexpr auto run() {
-    while (true) {
-      __cycle();
-    }
-  }
-
-  auto __execute_instruction(u8) -> void;
-
 private:
   /**
    * @brief flag register
    * Z B AC C 0 0 0 0
    */
-  u8 A, F;                         // program status word (ACCUMULATOR, FLAGS)
-  u8 B, C, D, E, H, L;             // register pairs
-  u16 _m__pc;                      // program counter
-  memory_bus _m__bus;              // 16b memory bus (64KiB)
-  bool _m__ready = true;           // mpu ready state
-  const u32 _m__speed = 3'000'000; // 3 MHz clock speed
 
-  constexpr auto __cycle() -> void {
-    for (u32 i = 0; i < _m__speed; ++i) {
-      if (_m__ready) {
-        u8 opcode = _m__bus.at(_m__pc);
-        __execute_instruction(opcode);
+  // Program Status Word (PSW)
+  union p_PSW {
+    u16 PSW;
+    struct {
+      u8 A;
+      u8 F;
+    };
+  } PSW;
+  // BC register pair
+  union p_BC {
+    u16 BC;
+    struct {
+      u8 B;
+      u8 C;
+    };
+  } BC;
+  // DE register pair
+  union p_DE {
+    u16 DE;
+    struct {
+      u8 D;
+      u8 E;
+    };
+  } DE;
+  // HL register pair
+  union p_HL {
+    u16 HL;
+    struct {
+      u8 H;
+      u8 L;
+    };
+  } HL;
+
+public:
+  p_PSW get_psw() { return PSW; }
+  void set_acc(const u8 _acc) { PSW.A = _acc; }
+  void set_flags(const u8 _flags) { PSW.F = _flags; }
+
+  p_BC get_bc() const { return BC; }
+  void set_b(const u8 _B) { BC.B = _B; }
+  void set_c(const u8 _C) { BC.C = _C; }
+  void set_bc(const u16 _BC) { BC.BC = _BC; }
+
+  p_DE get_de() const { return DE; }
+  void set_D(const u8 _D) { DE.D = _D; }
+  void set_E(const u8 _E) { DE.E = _E; }
+  void set_DE(const u16 _DE) { DE.DE = _DE; }
+
+  p_HL get_hl() const { return HL; }
+  void set_h(const u8 _H) { HL.H = _H; }
+  void set_l(const u8 _L) { HL.L = _L; }
+  void set_hl(const u8 _HL) { HL.HL = _HL; }
+
+  constexpr static u8 ZERO_FLAG = 0x80;
+  constexpr static u8 PARITY_FLAG = 0x40;
+  constexpr static u8 HALF_FLAG = 0x20;
+  constexpr static u8 CARRY_FLAG = 0x10;
+
+  void run() {
+    while (true) {
+      __cycle();
+    }
+  }
+
+  auto execute_instruction(u8) -> void;
+
+private:
+  u16 pc;                        // program counter
+  memory_bus bus;                // 16b memory bus (64KiB)
+  bool m_ready = true;           // mpu ready state
+  const u32 m_speed = 3'000'000; // 3 MHz clock speed
+
+  auto __cycle() -> void {
+    for (u32 i = 0; i < m_speed; ++i) {
+      if (m_ready) {
+        u8 opcode = bus.at(pc);
+        execute_instruction(opcode);
       }
     }
     TODO("render onto screen and update cycles");
   }
-  constexpr auto __fetch_next() -> u8 { return _m__bus.at(_m__pc++); }
+  auto __fetch_next() -> u8 { return bus.at(pc++); }
 };
 }; // namespace mpu
 

@@ -1,4 +1,4 @@
 # Editor config files
 .vscode/*
 # meson build artifcats
-builddir/*
+build/*

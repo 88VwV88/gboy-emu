@@ -1,4 +1,4 @@
-#include <print>
+#include <iostream>
 #include <stdexcept>
 #include "core/cpu.hpp"
 
@@ -7,6 +7,6 @@ int main() {
   try {
     cpu.run();
   } catch (std::runtime_error &error) {
-    std::println("{}", error.what());
+    std::cerr << error.what() << std::endl;
   }
 }
