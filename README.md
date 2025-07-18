@@ -2,23 +2,15 @@
 
 A Game Boy Emulator using C/C++, created for education purposes, with cycle accurate emulation of the CPU.
 
-# requirements
-
-### gcc-14
+### build requirements
 
 ```bash
-sudo apt install gcc-14
+sudo apt install build-essential libsdl-dev cmake
 ```
 
-### meson build system
-
+### build steps
 ```bash
-sudo apt install meson
-```
-
-## Build Steps
-
-```bash
-CXX=g++-14 meson setup -Db_sanitize=address builddir && cd buildir
-meson compile
+mkdir build && cd build
+cmake ..
+cmake --build .
 ```
