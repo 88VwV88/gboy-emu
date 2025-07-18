@@ -19,7 +19,7 @@ struct CPU {
 private:
   /**
    * @brief flag register
-   * Z B AC C 0 0 0 0
+   * Z B HC C 0 0 0 0
    */
 
   // Program Status Word (PSW)
@@ -76,7 +76,7 @@ public:
   void set_hl(const u8 _HL) { HL.HL = _HL; }
 
   constexpr static u8 ZERO_FLAG = 0x80;
-  constexpr static u8 PARITY_FLAG = 0x40;
+  constexpr static u8 SUBTRACT_FLAG = 0x40;
   constexpr static u8 HALF_FLAG = 0x20;
   constexpr static u8 CARRY_FLAG = 0x10;
 
@@ -90,7 +90,7 @@ public:
 
 private:
   u16 pc;                        // program counter
-  memory_bus bus;                // 16b memory bus (64KiB)
+  mmu bus;                // 16b memory bus (64KiB)
   bool m_ready = true;           // mpu ready state
   const u32 m_speed = 3'000'000; // 3 MHz clock speed
 

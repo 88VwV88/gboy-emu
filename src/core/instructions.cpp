@@ -34,35 +34,23 @@ auto CPU::execute_instruction(u8 _opcode) -> void {
     case 0x4: // 0x04 INC B
     {
       auto value_u8 = get_bc().B;
-      // test for carry
-      if (0 == value_u8) {
-        if (0 != ++value_u8)
-          flags |= CARRY_FLAG;
-      } else
-        ++value_u8;
-      set_b(value_u8);
+      set_b(value_u8 + 1);
+      if (0 != value_u8 && 0 == ++value_u8)
+        flags |= CARRY_FLAG;
 
       // test for half carry
-      if (value_u8 & 0x10)
+      if (0 == value_u8 & 0x10 && 0 != ++value_u8 & 0x10)
         flags |= HALF_FLAG;
-      // test parity
-      if (0 == value_u8)
-        if (value_u8 & 0x01)
-          flags |= PARITY_FLAG;
     } break;
     case 0x5: // 0x05 DEC B
     {
       auto value_u8 = get_bc().B;
 
-      // test for borrow
       if (value_u8 & 0x80)
         flags |= CARRY_FLAG;
-      // test for half carry
       if (value_u8 & 0x08)
         flags |= HALF_FLAG;
-      // test parity
-      if (value_u8 & 0x01)
-        flags |= PARITY_FLAG;
+      flags |= SUBTRACT_FLAG;
     } break;
     case 0x6: // 0x06 LD B, u8
     {
@@ -89,6 +77,7 @@ auto CPU::execute_instruction(u8 _opcode) -> void {
     } break;
     case 0xB: // 0x0B DEC BC
       set_bc(get_bc().BC - 1);
+      flags |= SUBTRACT_FLAG;
       break;
     case 0xC: // 0x0C INC C
     {
@@ -102,8 +91,6 @@ auto CPU::execute_instruction(u8 _opcode) -> void {
 
       if (0 == value_u8)
         flags |= ZERO_FLAG;
-      if (value_u8 & 0x01)
-        flags |= PARITY_FLAG;
     } break;
     case 0xD: // 0x0D DEC C
     {
@@ -112,8 +99,7 @@ auto CPU::execute_instruction(u8 _opcode) -> void {
 
       if (0 == value_u8)
         flags |= ZERO_FLAG;
-      if (value_u8 & 0x01)
-        flags |= PARITY_FLAG;
+      flags |= SUBTRACT_FLAG;
     } break;
     case 0xE: // 0x0E LD C, u8
       TODO("LD C,u8");
