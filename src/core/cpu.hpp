@@ -55,6 +55,11 @@ private:
     };
   } HL;
 
+  // SP register
+  union p_SP {
+    u16 SP;
+  } SP;
+
 public:
   p_PSW get_psw() { return PSW; }
   void set_acc(const u8 _acc) { PSW.A = _acc; }
@@ -74,6 +79,9 @@ public:
   void set_h(const u8 _H) { HL.H = _H; }
   void set_l(const u8 _L) { HL.L = _L; }
   void set_hl(const u8 _HL) { HL.HL = _HL; }
+
+  p_SP get_sp() const { return SP; }
+  void set_sp(const u16 _SP) { SP.SP = _SP; }
 
   constexpr static u8 ZERO_FLAG = 0x80;
   constexpr static u8 SUBTRACT_FLAG = 0x40;
@@ -104,6 +112,11 @@ private:
     TODO("render onto screen and update cycles");
   }
   auto __fetch_next() -> u8 { return bus.at(pc++); }
+
+  public:
+  // getter and setter for program counter
+  u16 get_pc() const { return pc; }
+  void set_pc(const u16 _pc) { pc = _pc; }
 };
 }; // namespace mpu
 
