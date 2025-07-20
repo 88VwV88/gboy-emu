@@ -24,7 +24,7 @@ struct mmu {
   std::array<u8, 0x7F>   hram {};        // 0xFF80-FFFE
   u8 interrupt_enable = 0;               // 0xFFFF
 
-  // Read a byte from the mapped memory
+  // Read
   u8 at(u16 addr) const {
     if (addr < 0x4000) {
       return rom_bank0[addr];
@@ -54,12 +54,12 @@ struct mmu {
     return 0xFF;
   }
 
-  // Write a byte to the mapped memory
+  // Write
   void set_u8(u16 addr, u8 value) {
     if (addr < 0x4000) {
-      // ROM is typically not writable
+      // ROM bank 1 not writable in gboy
     } else if (addr < 0x8000) {
-      // ROM bank n is typically not writable
+      // ROM bank n not writable in gboy
     } else if (addr < 0xA000) {
       vram[addr - 0x8000] = value;
     } else if (addr < 0xC000) {
@@ -70,6 +70,7 @@ struct mmu {
       wram1[addr - 0xD000] = value;
     } else if (addr < 0xFE00) {
       // Echo RAM (0xE000-0xFDFF) mirrors 0xC000-0xDDFF
+      // any changes in this reflect exact changes in wram
       set_u8(addr - 0x2000, value);
     } else if (addr < 0xFEA0) {
       oam[addr - 0xFE00] = value;
@@ -84,7 +85,7 @@ struct mmu {
     }
   }
 
-  // Write a 16-bit value (little-endian) to memory
+  // Write a 16-bit value
   void set_u16(u16 addr, u16 value) {
     set_u8(addr, static_cast<u8>(value & 0x00FF));
     set_u8(addr + 1, static_cast<u8>((value & 0xFF00) >> 8));
